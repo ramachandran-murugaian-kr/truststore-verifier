@@ -1,0 +1,12 @@
+---
+future-ex:
+  ssl-config:
+    key-store-password: ${FUTURE_EX_KEY_STORE_PWD}
+    key-store-path: truststore.p12
+  url: https://kroger.uscentral1-cryptohub-uat.virtucrypt.com:10001
+logging:
+  level:
+    nl.altindag.ssl: info
+    reactor.netty.http: debug
+server.port: 8081
+spring.application.name: truststore-verifier
