@@ -29,8 +29,8 @@ class WebClientConfiguration {
     return SSLFactory.builder()
         .withLoggingIdentityMaterial()
         .withLoggingTrustMaterial()
-        .withIdentityMaterial(properties.keyStorePath, properties.keyStorePassword)
         .withTrustingAllCertificatesWithoutValidation()
+        .withIdentityMaterial(properties.getKeyStorePath(), properties.getKeyStorePassword())
         .build();
   }
 

@@ -10,20 +10,20 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class FutureExResponse {
   @JsonProperty("COMMAND")
-  private String command;
+  String command;
 
   @JsonProperty("AM")
-  private String am;
+  String am;
 
   @JsonProperty("AN")
-  private String an;
+  String an;
 
   @JsonProperty("AO")
-  private String ao;
+  String ao;
 
   @JsonProperty("BB")
-  private String bb;
+  String bb;
 
   @JsonProperty("ER")
-  private String er;
+  String er;
 }

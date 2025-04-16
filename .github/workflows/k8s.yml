@@ -1,0 +1,48 @@
+name: CI/CD Pipeline for Feature/Bugfix Branches
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [ kubernetes ]
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: 17
+          cache: gradle
+
+      - name: 3. Build Project
+        env:
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_EDGE_PASSWORD: ${{ secrets.ARTIFACTORY_EDGE_PASSWORD }}
+        run: |
+          echo `echo ${{ github.head_ref }} | tr -d /-`
+          ./gradlew --no-daemon clean build --refresh-dependencies
+        continue-on-error: false
+
+      - name: 4. Run IT
+        env:
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_EDGE_PASSWORD: ${{ secrets.ARTIFACTORY_EDGE_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon integrationTest
+        continue-on-error: false
+
+      - name: 5. Archive artifacts
+        run: |
+          tar -cf archived_build_${{ github.sha }}.tar build
+
+      - name: 6. Upload Archived Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: archived_build_${{ github.sha }}.tar
+

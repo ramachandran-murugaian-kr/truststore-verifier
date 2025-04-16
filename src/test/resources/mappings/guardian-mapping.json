@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/guardian",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.AO == 'TKTW')]"
+      },
+      {
+        "matchesJsonPath": "$[?(@.TI == '1')]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "guardian-response.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

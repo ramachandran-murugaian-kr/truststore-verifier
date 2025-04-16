@@ -2,9 +2,12 @@ package com.rmurugaian.truststoreverifier.service;
 
 import com.rmurugaian.truststoreverifier.model.FutureExClientRequest;
 import com.rmurugaian.truststoreverifier.model.FutureExClientResponse;
+import com.rmurugaian.truststoreverifier.model.TransactionDocument;
+import com.rmurugaian.truststoreverifier.repository.TransactionRepository;
 import com.rmurugaian.truststoreverifier.spi.FutureExClient;
 import com.rmurugaian.truststoreverifier.spi.FutureExRequest;
 import com.rmurugaian.truststoreverifier.spi.FutureExResponse;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ public class FutureExService {
 
   private final FutureExJwtService futureExJwtService;
   private final FutureExClient futureExClient;
+  private final TransactionRepository transactionRepository;
 
   public Mono<FutureExClientResponse> decrypt(
       final String correlationId, final FutureExClientRequest futureExClientRequest) {
@@ -41,6 +45,7 @@ public class FutureExService {
         .flatMap(it -> futureExClient.guardian(correlationId, it))
         .mapNotNull(HttpEntity::getBody)
         .map(this::handleResponse)
+        .flatMap(futureExClientResponse -> save(futureExClientResponse, futureExClientRequest))
         .onErrorResume(
             Exception.class,
             e -> Mono.just(FutureExClientResponse.builder().error(e.getMessage()).build()));
@@ -58,5 +63,21 @@ public class FutureExService {
     }
 
     return FutureExClientResponse.builder().decrypted(futureExResponse.getAo()).build();
+  }
+
+  private Mono<FutureExClientResponse> save(
+      FutureExClientResponse futureExClientResponse, FutureExClientRequest futureExClientRequest) {
+    UUID transactionId = UUID.randomUUID();
+    final var transactionDocument =
+        TransactionDocument.builder()
+            .id(transactionId)
+            .command(futureExClientRequest.getCommand())
+            .value(futureExClientRequest.getValue())
+            .decrypted(futureExClientResponse.getDecrypted())
+            .error(futureExClientResponse.getError())
+            .build();
+    return transactionRepository
+        .save(transactionDocument)
+        .map(s -> futureExClientResponse.toBuilder().id(s.getId()).build());
   }
 }
