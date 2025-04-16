@@ -1,7 +1,8 @@
 name: CI/CD Pipeline for Feature/Bugfix Branches
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
     branches:
       - main
 
