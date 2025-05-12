@@ -21,22 +21,6 @@ jobs:
         run: |
           npm install @semantic-release/github
 
-      - name: Configure Semantic Release
-        run: |
-          CONFIG_SEMANTIC_RELEASE=$(cat << JSON
-          {
-            "branches": ["main"],
-            "plugins": [
-              [
-              "@semantic-release/commit-analyzer",
-              "@semantic-release/release-notes-generator",
-              "@semantic-release/github"
-            ]
-          }
-          JSON
-          )
-          echo "$CONFIG_SEMANTIC_RELEASE" > .releaserc.json
-
       - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }} # Automatically provided by GitHub Actions
