@@ -19,7 +19,8 @@ jobs:
 
       - name: Install Semantic Release and Plugins
         run: |
-          npm install -g semantic-release \
+          npm init -y
+          npm install --save-dev semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
             @semantic-release/github
