@@ -1,0 +1,59 @@
+name: Update Version After Tag
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-version:
+    runs-on:
+      - ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: 'false'
+
+      - name: Extract tag version
+        id: tag
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Tag name: $TAG_NAME"
+
+      - name: Update version in gradle.properties
+        run: |
+          # Update version in gradle.properties to TAG_NAME-SNAPSHOT
+          sed -i "s/version = .*/version = ${{ steps.tag.outputs.tag_name }}-SNAPSHOT/" gradle.properties
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.REPO_GITHUB_TOKEN }}
+          commit-message: "chore(version): update version to ${{ steps.tag.outputs.tag_name }}-SNAPSHOT"
+          title: "chore(version): update version to ${{ steps.tag.outputs.tag_name }}-SNAPSHOT"
+          body: |
+            ## Description
+            This PR updates the version in gradle.properties to ${{ steps.tag.outputs.tag_name }}-SNAPSHOT after tag ${{ steps.tag.outputs.tag_name }} was created.
+
+            ## Changes
+            - Updated version from previous value to ${{ steps.tag.outputs.tag_name }}-SNAPSHOT
+            - This change prepares the codebase for the next development cycle
+
+            ## Reason
+            After releasing version ${{ steps.tag.outputs.tag_name }}, we need to update the development version to reflect the next SNAPSHOT version.
+
+            Automated PR created by GitHub Actions after tag creation.
+          branch: update-version-to-${{ steps.tag.outputs.tag_name }}-SNAPSHOT
+          base: master
+          delete-branch: true
+          labels: |
+            auto merge
+            version
+            github action

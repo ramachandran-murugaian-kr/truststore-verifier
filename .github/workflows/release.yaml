@@ -1,0 +1,49 @@
+name: Manual Release
+
+on:
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
+
+jobs:
+  semantic-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for semantic-release to access commit history
+          persist-credentials: 'false'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Install Semantic Release and Plugins
+        run: |
+          npm install -g semantic-release 
+          npm install -g @semantic-release/changelog 
+          npm install -g @semantic-release/commit-analyzer 
+          npm install -g @semantic-release/release-notes-generator 
+          npm install -g @semantic-release/github 
+          npm install -g @semantic-release/git
+
+      - name: Configure Semantic Release
+        run: |
+          CONFIG_SEMANTIC_RELEASE=$(cat << JSON
+          {
+            "branches": ["main"],
+            "plugins": [
+              ["@semantic-release/commit-analyzer", {
+                "preset": "conventionalcommits"
+              }],
+              "@semantic-release/release-notes-generator",
+              "@semantic-release/github"
+            ]
+          }
+          JSON
+          )
+          echo "$CONFIG_SEMANTIC_RELEASE" > .releaserc.json
+
+      - name: Run Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }} # Automatically provided by GitHub Actions
+        run: npx semantic-release
